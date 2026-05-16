@@ -12,12 +12,19 @@ export const defaultFx = (): FxParams => ({
   compressor: 0, flanger: 0,
 });
 
+export interface PatternStep {
+  note?: number;
+  notes?: number[];
+  drum?: string;
+  exp?: string;
+}
+
 export interface SoundDef {
   id: string;
   name: string;
   category: Category;
   color: string;
-  pattern: { note?: number | number[]; drum?: string; exp?: string }[];
+  pattern: PatternStep[];
   buffer?: AudioBuffer; // For recorded sounds
   loopMode?: 'fast' | 'full';
   playMode?: 'pattern' | 'buffer'; // New: 'pattern' for sequenced notes, 'buffer' for direct audio playback
@@ -357,6 +364,8 @@ export class ProjectEngine {
         this.playBuffer(slot.buffer, time, slot.loopMode || 'fast', index);
       } else if (stepData.drum) {
         this.playDrum(stepData.drum, time, index);
+      } else if (stepData.notes && stepData.notes.length > 0) {
+        stepData.notes.forEach((note) => this.playSynth(note, slot.category, time, index));
       } else if (stepData.note) {
         if (Array.isArray(stepData.note)) {
           stepData.note.forEach((note) => this.playSynth(note, slot.category, time, index));
